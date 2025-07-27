@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Fake Bank System</title>
+<!-- Bootstrap CDN for styling -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+  }
+  /* Custom styles for modal overlay */
+  .modal-backdrop {
+    background-color: rgba(0,0,0,0.5);
+  }
+  /* Custom styles for pages */
+  .page-section {
+    display: none;
+  }
+  /* Show active page */
+  .active {
+    display: block;
+  }
+  /* Header styles */
+  header {
+    background-color: #003366;
+    color: #fff;
+    padding: 15px;
+    text-align: center;
+  }
+  /* Welcome page styles */
+  #welcomePage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+    background-color: #e0f0ff;
+  }
+  #welcomePage h1 {
+    font-size: 3em;
+    margin-bottom: 20px;
+  }
+  #welcomePage p {
+    font-size: 1.2em;
+    margin-bottom: 30px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>My Fake Bank</h1>
+</header>
+
+<!-- Welcome Page -->
+<div id="welcomePage" class="page-section active">
+  <h1>Welcome to Your Trusted Bank</h1>
+  <p>Your financial journey begins here.</p>
+  <button class="btn btn-primary btn-lg" id="welcomeLoginBtn">Login</button>
+</div>
+
+<!-- Login Page -->
+<div id="loginPage" class="page-section container py-5" style="display:none;">
+  <div class="row justify-content-center">
+    <div class="col-md-4">
+      <div class="card p-4 shadow-sm">
+        <h4 class="mb-3 text-center">Bank Login</h4>
+        <form id="loginForm">
+          <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" id="username" class="form-control" required />
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" id="password" class="form-control" required />
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Login</button>
+          <button type="button" class="btn btn-secondary w-100 mt-2" id="cancelLogin">Cancel</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dashboard Page -->
+<div id="dashboardPage" class="page-section container py-5" style="display:none;">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Dashboard</h2>
+    <button class="btn btn-secondary" id="logoutBtn">Logout</button>
+  </div>
+  <div class="card p-4 shadow-sm mb-4">
+    <h4>Account Summary</h4>
+    <p><strong>Account Number:</strong> 1234 5678 9012 3456</p>
+    <p><strong>Balance:</strong> $10,000.00</p>
+    <div class="mt-3">
+      <button class="btn btn-primary me-2" id="btnWithdraw">Withdraw</button>
+      <button class="btn btn-success" id="btnDeposit">Deposit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Withdrawal Page -->
+<div id="withdrawPage" class="page-section container py-5" style="display:none;">
+  <h2>Withdraw Funds</h2>
+  <form id="withdrawForm" class="mt-4">
+    <div class="mb-3">
+      <label for="withdrawAmount" class="form-label">Amount</label>
+      <input type="number" id="withdrawAmount" class="form-control" placeholder="$0.00" min="1" required />
+    </div>
+    <button type="submit" class="btn btn-success">Proceed</button>
+    <button type="button" class="btn btn-secondary ms-2" id="cancelWithdraw">Cancel</button>
+  </form>
+</div>
+
+<!-- Deposit Page -->
+<div id="depositPage" class="page-section container py-5" style="display:none;">
+  <h2>Deposit Funds</h2>
+  <form id="depositForm" class="mt-4">
+    <div class="mb-3">
+      <label for="depositAmount" class="form-label">Amount</label>
+      <input type="number" id="depositAmount" class="form-control" placeholder="$0.00" min="1" required />
+    </div>
+    <button type="submit" class="btn btn-success">Proceed</button>
+    <button type="button" class="btn btn-secondary ms-2" id="cancelDeposit">Cancel</button>
+  </form>
+</div>
+
+<!-- Authorization Modal -->
+<div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content p-4">
+      <h5 class="modal-title mb-3" id="authModalLabel">Authorization Required</h5>
+      <p>Please enter your authorization code to confirm the transaction. Contact your account officer for authorization if needed.</p>
+      <input type="text" id="authCodeInput" class="form-control mb-3" placeholder="Authorization Code" />
+      <div class="d-flex justify-content-end">
+        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="submitAuthCode">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Transaction Result Message -->
+<div id="resultPage" class="page-section container py-5 text-center" style="display:none;">
+  <h2>Transaction Failed</h2>
+  <p>Your transaction could not be authorized. Please contact your account officer for assistance.</p>
+  <button class="btn btn-primary mt-3" id="backToDashboard2">Back to Dashboard</button>
+</div>
+
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // Page elements
+  const welcomePage = document.getElementById('welcomePage');
+  const loginPage = document.getElementById('loginPage');
+  const dashboardPage = document.getElementById('dashboardPage');
+  const withdrawPage = document.getElementById('withdrawPage');
+  const depositPage = document.getElementById('depositPage');
+  const resultPage = document.getElementById('resultPage');
+
+  // Buttons
+  const welcomeLoginBtn = document.getElementById('welcomeLoginBtn');
+  const cancelLoginBtn = document.getElementById('cancelLogin');
+  const loginForm = document.getElementById('loginForm');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const btnWithdraw = document.getElementById('btnWithdraw');
+  const btnDeposit = document.getElementById('btnDeposit');
+  const cancelWithdrawBtn = document.getElementById('cancelWithdraw');
+  const cancelDepositBtn = document.getElementById('cancelDeposit');
+  const backToDashboardBtn = document.getElementById('backToDashboard2');
+  const submitAuthCodeBtn = document.getElementById('submitAuthCode');
+
+  // Modal
+  const authModal = new bootstrap.Modal(document.getElementById('authModal'));
+  const authCodeInput = document.getElementById('authCodeInput');
+
+  // Variables
+  let transactionType = ''; // 'withdraw' or 'deposit'
+  let transactionAmount = 0;
+
+  // Utility function to show only one page
+  function showPage(page) {
+    // hide all
+    welcomePage.style.display = 'none';
+    loginPage.style.display = 'none';
+    dashboardPage.style.display = 'none';
+    withdrawPage.style.display = 'none';
+    depositPage.style.display = 'none';
+    resultPage.style.display = 'none';
+
+    // show selected
+    page.style.display = 'block';
+  }
+
+  // Welcome page login button
+  welcomeLoginBtn.onclick = () => {
+    showPage(loginPage);
+  };
+
+  // Cancel login
+  document.getElementById('cancelLogin').onclick = () => {
+    showPage(welcomePage);
+  };
+
+  // Login form submit
+  loginForm.onsubmit = (e) => {
+    e.preventDefault();
+    showPage(dashboardPage);
+  };
+
+  // Logout
+  logoutBtn.onclick = () => {
+    showPage(welcomePage);
+  };
+
+  // Buttons to go to withdraw/deposit
+  btnWithdraw.onclick = () => {
+    transactionType = 'withdraw';
+    showPage(withdrawPage);
+  };
+
+  btnDeposit.onclick = () => {
+    transactionType = 'deposit';
+    showPage(depositPage);
+  };
+
+  // Cancel withdrawal/deposit
+  document.getElementById('cancelWithdraw').onclick = () => {
+    showPage(dashboardPage);
+  };
+  document.getElementById('cancelDeposit').onclick = () => {
+    showPage(dashboardPage);
+  };
+
+  // Back to dashboard after transaction result
+  backToDashboardBtn.onclick = () => {
+    showPage(dashboardPage);
+  };
+
+  // Handle withdrawal form
+  document.getElementById('withdrawForm').onsubmit = (e) => {
+    e.preventDefault();
+    transactionAmount = document.getElementById('withdrawAmount').value;
+    if (!transactionAmount || transactionAmount <= 0) {
+      alert('Please enter a valid amount.');
+      return;
+    }
+    // Show modal for authorization
+    authCodeInput.value = '';
+    authModal.show();
+  };
+
+  // Handle deposit form
+  document.getElementById('depositForm').onsubmit = (e) => {
+    e.preventDefault();
+    transactionAmount = document.getElementById('depositAmount').value;
+    if (!transactionAmount || transactionAmount <= 0) {
+      alert('Please enter a valid amount.');
+      return;
+    }
+    // Show modal for authorization
+    authCodeInput.value = '';
+    authModal.show();
+  };
+
+  // Handle authorization confirmation
+  document.getElementById('submitAuthCode').onclick = () => {
+    const code = authCodeInput.value.trim();
+    // Reject all codes, show failure message
+    authModal.hide();
+    showPage(resultPage);
+  };
+</script>
+
+</body>
+</html>
